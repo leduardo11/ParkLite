@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using ParkLite.Api.Dtos;
 using ParkLite.Api.Interfaces;
-using ParkLite.Api.Models;
 
 namespace ParkLite.Api.Controllers;
 
@@ -11,34 +11,35 @@ public class AccountController(IAccountService accountService) : ControllerBase
 	private readonly IAccountService _accountService = accountService;
 
 	[HttpGet]
-	public IActionResult Get() => Ok(_accountService.GetAllAccountsAsync());
+	public async Task<IActionResult> Get() =>
+		Ok(await _accountService.GetAllAccountsAsync());
 
 	[HttpGet("{id:int}")]
-	public IActionResult Get(int id)
+	public async Task<IActionResult> Get(int id)
 	{
-		var account = _accountService.GetByIdAsync(id);
+		var account = await _accountService.GetByIdAsync(id);
 		return account is null ? NotFound() : Ok(account);
 	}
 
 	[HttpPost]
-	public IActionResult Post(Account account)
+	public async Task<IActionResult> Post(AccountDTO account)
 	{
-		_accountService.AddAsync(account);
+		await _accountService.AddAsync(account);
 		return CreatedAtAction(nameof(Get), new { id = account.Id }, account);
 	}
 
 	[HttpPut("{id:int}")]
-	public IActionResult Put(int id, Account account)
+	public async Task<IActionResult> Put(int id, AccountDTO account)
 	{
 		if (id != account.Id) return BadRequest();
-		_accountService.UpdateAsync(account);
+		await _accountService.UpdateAsync(account);
 		return NoContent();
 	}
 
 	[HttpDelete("{id:int}")]
-	public IActionResult Delete(int id)
+	public async Task<IActionResult> Delete(int id)
 	{
-		_accountService.DeleteAsync(id);
+		await _accountService.DeleteAsync(id);
 		return NoContent();
 	}
 

@@ -145,7 +145,7 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 
 		foreach (var vehicle in account.Vehicles)
 		{
-			using var vehicleCmd = SqliteHelper.CreateCommand(_conn, "INSERT INTO Vehicles (AccountId, Plate, Model) VALUES ($accountId, $plate, $model)", transaction);
+			using var vehicleCmd = SqliteHelper.CreateCommand(_conn, "INSERT INTO Vehicles (AccountId, Plate, Model, Photo) VALUES ($accountId, $plate, $model, $photo)", transaction);
 			vehicleCmd.AddParameter("$accountId", account.Id);
 			vehicleCmd.AddParameter("$plate", vehicle.Plate);
 			vehicleCmd.AddParameter("$model", vehicle.Model);
