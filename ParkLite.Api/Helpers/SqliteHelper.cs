@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.Data.Sqlite;
 using ParkLite.Api.Models;
 
@@ -22,6 +23,16 @@ public static class SqliteHelper
 		if (transaction != null)
 			cmd.Transaction = transaction;
 		return cmd;
+	}
+
+	public static void EnableForeignKeys(SqliteConnection conn)
+	{
+		if (conn.State != ConnectionState.Open)
+			conn.Open();
+
+		using var cmd = conn.CreateCommand();
+		cmd.CommandText = "PRAGMA foreign_keys = ON;";
+		cmd.ExecuteNonQuery();
 	}
 
 	public static void AddParameter(this SqliteCommand cmd, string name, object? value)

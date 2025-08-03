@@ -5,9 +5,15 @@ using ParkLite.Api.Models;
 
 namespace ParkLite.Api.Repositories;
 
-public class AccountRepository(SqliteConnection connection) : IAccountRepository
+public class AccountRepository : IAccountRepository
 {
-	private readonly SqliteConnection _conn = connection;
+	private readonly SqliteConnection _conn;
+
+	public AccountRepository(SqliteConnection connection)
+	{
+		_conn = connection;
+		SqliteHelper.EnableForeignKeys(_conn);
+	}
 
 	public async Task<Account?> GetByIdAsync(int id)
 	{

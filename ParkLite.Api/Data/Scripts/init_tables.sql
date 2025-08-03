@@ -18,7 +18,8 @@ IF NOT EXISTS Contacts
     Phone TEXT,
     FOREIGN KEY
 (AccountId) REFERENCES Accounts
-(Id)
+(Id) ON
+DELETE CASCADE
 );
 
 CREATE TABLE
@@ -30,5 +31,7 @@ IF NOT EXISTS Vehicles
     Model TEXT,
     FOREIGN KEY
 (AccountId) REFERENCES Accounts
-(Id)
+(Id) ON
+DELETE CASCADE
 );
+
