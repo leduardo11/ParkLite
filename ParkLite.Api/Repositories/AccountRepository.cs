@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using ParkLite.Api.Helpers;
 using ParkLite.Api.Interfaces;
 using ParkLite.Api.Models;
 
@@ -8,59 +9,19 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 {
 	private readonly SqliteConnection _conn = connection;
 
-	private static Account CreateAccountFromReader(SqliteDataReader reader)
-		=> new(reader.GetInt32(0), reader.GetString(1), reader.GetInt32(2) == 1);
-
-	private static Contact? CreateContactFromReader(SqliteDataReader reader)
-	{
-		if (reader.IsDBNull(3)) return null;
-
-		return new Contact
-		{
-			Id = reader.GetInt32(3),
-			AccountId = reader.GetInt32(0),
-			Name = reader.GetString(4),
-			Phone = reader.IsDBNull(5) ? null : reader.GetString(5),
-		};
-	}
-
-	private static Vehicle? CreateVehicleFromReader(SqliteDataReader reader)
-	{
-		if (reader.IsDBNull(6)) return null;
-
-		return new Vehicle
-		{
-			Id = reader.GetInt32(6),
-			AccountId = reader.GetInt32(0),
-			Plate = reader.GetString(7),
-			Model = reader.IsDBNull(8) ? null : reader.GetString(8),
-		};
-	}
-
-	private static async Task<int> GetLastInsertRowIdAsync(SqliteConnection conn, SqliteTransaction? transaction = null)
-	{
-		using var cmd = conn.CreateCommand();
-		cmd.CommandText = "SELECT last_insert_rowid()";
-		if (transaction != null)
-			cmd.Transaction = transaction;
-		var result = await cmd.ExecuteScalarAsync();
-		return (int)(long)result!;
-	}
-
 	public async Task<Account?> GetByIdAsync(int id)
 	{
-		using var cmd = _conn.CreateCommand();
-		cmd.CommandText = """
+		using var cmd = SqliteHelper.CreateCommand(_conn, """
 			SELECT 
-				a.Id AS AccountId, a.Name AS AccountName, a.IsActive,
-				c.Id AS ContactId, c.Name AS ContactName, c.Phone,
-				v.Id AS VehicleId, v.Plate, v.Model
+				a.Id, a.Name, a.IsActive,
+				c.Id, c.Name, c.Phone,
+				v.Id, v.Plate, v.Model
 			FROM Accounts a
 			LEFT JOIN Contacts c ON c.AccountId = a.Id
 			LEFT JOIN Vehicles v ON v.AccountId = a.Id
 			WHERE a.Id = $id
-		""";
-		cmd.Parameters.AddWithValue("$id", id);
+		""");
+		cmd.AddParameter("$id", id);
 
 		using var reader = await cmd.ExecuteReaderAsync();
 
@@ -68,13 +29,13 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 
 		while (await reader.ReadAsync())
 		{
-			account ??= CreateAccountFromReader(reader);
+			account ??= SqliteHelper.CreateAccountFromReader(reader);
 
-			var contact = CreateContactFromReader(reader);
+			var contact = SqliteHelper.CreateContactFromReader(reader);
 			if (contact != null && !account.Contacts.Any(c => c.Id == contact.Id))
 				account.Contacts.Add(contact);
 
-			var vehicle = CreateVehicleFromReader(reader);
+			var vehicle = SqliteHelper.CreateVehicleFromReader(reader);
 			if (vehicle != null && !account.Vehicles.Any(v => v.Id == vehicle.Id))
 				account.Vehicles.Add(vehicle);
 		}
@@ -84,17 +45,16 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 
 	public async Task<IEnumerable<Account>> GetAllAsync()
 	{
-		using var cmd = _conn.CreateCommand();
-		cmd.CommandText = """
+		using var cmd = SqliteHelper.CreateCommand(_conn, """
 			SELECT 
-				a.Id AS AccountId, a.Name AS AccountName, a.IsActive,
-				c.Id AS ContactId, c.Name AS ContactName, c.Phone,
-				v.Id AS VehicleId, v.Plate, v.Model
+				a.Id, a.Name, a.IsActive,
+				c.Id, c.Name, c.Phone,
+				v.Id, v.Plate, v.Model
 			FROM Accounts a
 			LEFT JOIN Contacts c ON c.AccountId = a.Id
 			LEFT JOIN Vehicles v ON v.AccountId = a.Id
 			ORDER BY a.Id
-		""";
+		""");
 
 		using var reader = await cmd.ExecuteReaderAsync();
 
@@ -106,15 +66,15 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 
 			if (!accounts.TryGetValue(accountId, out var account))
 			{
-				account = CreateAccountFromReader(reader);
+				account = SqliteHelper.CreateAccountFromReader(reader);
 				accounts[accountId] = account;
 			}
 
-			var contact = CreateContactFromReader(reader);
+			var contact = SqliteHelper.CreateContactFromReader(reader);
 			if (contact != null && !account!.Contacts.Any(c => c.Id == contact.Id))
 				account.Contacts.Add(contact);
 
-			var vehicle = CreateVehicleFromReader(reader);
+			var vehicle = SqliteHelper.CreateVehicleFromReader(reader);
 			if (vehicle != null && !account!.Vehicles.Any(v => v.Id == vehicle.Id))
 				account.Vehicles.Add(vehicle);
 		}
@@ -126,14 +86,12 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 	{
 		using var transaction = _conn.BeginTransaction();
 
-		using var cmd = _conn.CreateCommand();
-		cmd.CommandText = "INSERT INTO Accounts (Name, IsActive) VALUES ($name, $isActive)";
-		cmd.Parameters.AddWithValue("$name", account.Name);
-		cmd.Parameters.AddWithValue("$isActive", account.IsActive ? 1 : 0);
-		cmd.Transaction = transaction;
+		using var cmd = SqliteHelper.CreateCommand(_conn, "INSERT INTO Accounts (Name, IsActive) VALUES ($name, $isActive)", transaction);
+		cmd.AddParameter("$name", account.Name);
+		cmd.AddParameter("$isActive", account.IsActive ? 1 : 0);
 		await cmd.ExecuteNonQueryAsync();
 
-		account.Id = await GetLastInsertRowIdAsync(_conn, transaction);
+		account.Id = await SqliteHelper.GetLastInsertRowIdAsync(_conn, transaction);
 		await SaveRelatedEntitiesAsync(account, transaction);
 
 		await transaction.CommitAsync();
@@ -143,27 +101,21 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 	{
 		using var transaction = _conn.BeginTransaction();
 
-		using var cmd = _conn.CreateCommand();
-		cmd.CommandText = "UPDATE Accounts SET Name = $name, IsActive = $isActive WHERE Id = $id";
-		cmd.Parameters.AddWithValue("$name", account.Name);
-		cmd.Parameters.AddWithValue("$isActive", account.IsActive ? 1 : 0);
-		cmd.Parameters.AddWithValue("$id", account.Id);
-		cmd.Transaction = transaction;
+		using var cmd = SqliteHelper.CreateCommand(_conn, "UPDATE Accounts SET Name = $name, IsActive = $isActive WHERE Id = $id", transaction);
+		cmd.AddParameter("$name", account.Name);
+		cmd.AddParameter("$isActive", account.IsActive ? 1 : 0);
+		cmd.AddParameter("$id", account.Id);
 		await cmd.ExecuteNonQueryAsync();
 
-		using (var deleteContactsCmd = _conn.CreateCommand())
+		using (var deleteContactsCmd = SqliteHelper.CreateCommand(_conn, "DELETE FROM Contacts WHERE AccountId = $accountId", transaction))
 		{
-			deleteContactsCmd.CommandText = "DELETE FROM Contacts WHERE AccountId = $accountId";
-			deleteContactsCmd.Parameters.AddWithValue("$accountId", account.Id);
-			deleteContactsCmd.Transaction = transaction;
+			deleteContactsCmd.AddParameter("$accountId", account.Id);
 			await deleteContactsCmd.ExecuteNonQueryAsync();
 		}
 
-		using (var deleteVehiclesCmd = _conn.CreateCommand())
+		using (var deleteVehiclesCmd = SqliteHelper.CreateCommand(_conn, "DELETE FROM Vehicles WHERE AccountId = $accountId", transaction))
 		{
-			deleteVehiclesCmd.CommandText = "DELETE FROM Vehicles WHERE AccountId = $accountId";
-			deleteVehiclesCmd.Parameters.AddWithValue("$accountId", account.Id);
-			deleteVehiclesCmd.Transaction = transaction;
+			deleteVehiclesCmd.AddParameter("$accountId", account.Id);
 			await deleteVehiclesCmd.ExecuteNonQueryAsync();
 		}
 
@@ -173,9 +125,8 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 
 	public async Task DeleteAsync(int id)
 	{
-		using var cmd = _conn.CreateCommand();
-		cmd.CommandText = "DELETE FROM Accounts WHERE Id = $id";
-		cmd.Parameters.AddWithValue("$id", id);
+		using var cmd = SqliteHelper.CreateCommand(_conn, "DELETE FROM Accounts WHERE Id = $id");
+		cmd.AddParameter("$id", id);
 		await cmd.ExecuteNonQueryAsync();
 	}
 
@@ -188,10 +139,7 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 		do
 		{
 			using var transaction = _conn.BeginTransaction();
-			using var cmd = _conn.CreateCommand();
-			cmd.Transaction = transaction;
-
-			cmd.CommandText = """
+			using var cmd = SqliteHelper.CreateCommand(_conn, """
 				WITH cte AS (
 					SELECT Id FROM Accounts
 					WHERE IsActive = 1
@@ -201,8 +149,8 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 				UPDATE Accounts
 				SET IsActive = 0
 				WHERE Id IN (SELECT Id FROM cte);
-			""";
-			cmd.Parameters.AddWithValue("$batchSize", batchSize);
+			""", transaction);
+			cmd.AddParameter("$batchSize", batchSize);
 
 			affectedRows = await cmd.ExecuteNonQueryAsync();
 			await transaction.CommitAsync();
@@ -217,28 +165,24 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 	{
 		foreach (var contact in account.Contacts)
 		{
-			using var contactCmd = _conn.CreateCommand();
-			contactCmd.CommandText = "INSERT INTO Contacts (AccountId, Name, Phone) VALUES ($accountId, $name, $phone)";
-			contactCmd.Parameters.AddWithValue("$accountId", account.Id);
-			contactCmd.Parameters.AddWithValue("$name", contact.Name);
-			contactCmd.Parameters.AddWithValue("$phone", (object?)contact.Phone ?? DBNull.Value);
-			contactCmd.Transaction = transaction;
+			using var contactCmd = SqliteHelper.CreateCommand(_conn, "INSERT INTO Contacts (AccountId, Name, Phone) VALUES ($accountId, $name, $phone)", transaction);
+			contactCmd.AddParameter("$accountId", account.Id);
+			contactCmd.AddParameter("$name", contact.Name);
+			contactCmd.AddParameter("$phone", contact.Phone);
 			await contactCmd.ExecuteNonQueryAsync();
 
-			contact.Id = await GetLastInsertRowIdAsync(_conn, transaction);
+			contact.Id = await SqliteHelper.GetLastInsertRowIdAsync(_conn, transaction);
 		}
 
 		foreach (var vehicle in account.Vehicles)
 		{
-			using var vehicleCmd = _conn.CreateCommand();
-			vehicleCmd.CommandText = "INSERT INTO Vehicles (AccountId, Plate, Model) VALUES ($accountId, $plate, $model)";
-			vehicleCmd.Parameters.AddWithValue("$accountId", account.Id);
-			vehicleCmd.Parameters.AddWithValue("$plate", vehicle.Plate);
-			vehicleCmd.Parameters.AddWithValue("$model", (object?)vehicle.Model ?? DBNull.Value);
-			vehicleCmd.Transaction = transaction;
+			using var vehicleCmd = SqliteHelper.CreateCommand(_conn, "INSERT INTO Vehicles (AccountId, Plate, Model) VALUES ($accountId, $plate, $model)", transaction);
+			vehicleCmd.AddParameter("$accountId", account.Id);
+			vehicleCmd.AddParameter("$plate", vehicle.Plate);
+			vehicleCmd.AddParameter("$model", vehicle.Model);
 			await vehicleCmd.ExecuteNonQueryAsync();
 
-			vehicle.Id = await GetLastInsertRowIdAsync(_conn, transaction);
+			vehicle.Id = await SqliteHelper.GetLastInsertRowIdAsync(_conn, transaction);
 		}
 	}
 }
