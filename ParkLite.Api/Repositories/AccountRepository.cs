@@ -62,7 +62,7 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 
 		while (await reader.ReadAsync())
 		{
-			var accountId = reader.GetInt32(0);
+			var accountId = reader.GetInt32((int)SqlColumnIndex.AccountId);
 
 			if (!accounts.TryGetValue(accountId, out var account))
 			{
@@ -134,7 +134,7 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 	{
 		foreach (var contact in account.Contacts)
 		{
-			using var contactCmd = SqliteHelper.CreateCommand(_conn, "INSERT INTO Contacts (AccountId, Name, Phone) VALUES ($accountId, $name, $phone)", transaction);
+			using var contactCmd = SqliteHelper.CreateCommand(_conn, "INSERT INTO Contacts (AccountId, Name, Phone, Email) VALUES ($accountId, $name, $phone, $email)", transaction);
 			contactCmd.AddParameter("$accountId", account.Id);
 			contactCmd.AddParameter("$name", contact.Name);
 			contactCmd.AddParameter("$phone", contact.Phone);
