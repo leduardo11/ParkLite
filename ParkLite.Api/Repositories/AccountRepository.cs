@@ -56,17 +56,21 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 		result.Total = Convert.ToInt32(await countCmd.ExecuteScalarAsync());
 
 		using var cmd = SqliteHelper.CreateCommand(_conn, $"""
-		SELECT 
-			a.Id, a.Name, a.IsActive,
-			c.Id, c.Name, c.Phone, c.Email,
-			v.Id, v.Plate, v.Model, v.Photo
-		FROM Accounts a
-		LEFT JOIN Contacts c ON c.AccountId = a.Id
-		LEFT JOIN Vehicles v ON v.AccountId = a.Id
-		{(search != null ? "WHERE a.Name LIKE $search" : "")}
-		ORDER BY a.Id
-		LIMIT $limit OFFSET $offset
-	""");
+	       SELECT 
+	    	a.Id, a.Name, a.IsActive,
+	     	c.Id, c.Name, c.Phone, c.Email,
+	     	v.Id, v.Plate, v.Model, v.Photo
+	       FROM (
+	    	SELECT Id FROM Accounts
+	    	{(search != null ? "WHERE Name LIKE $search" : "")}
+	    	ORDER BY Id
+	    	LIMIT $limit OFFSET $offset
+	        ) AS paged
+	        JOIN Accounts a ON a.Id = paged.Id
+        	LEFT JOIN Contacts c ON c.AccountId = a.Id
+        	LEFT JOIN Vehicles v ON v.AccountId = a.Id
+""");
+
 		if (search != null) cmd.AddParameter("$search", $"%{search}%");
 		cmd.AddParameter("$limit", limit);
 		cmd.AddParameter("$offset", offset);
