@@ -4,9 +4,9 @@ namespace ParkLite.Api.Interfaces;
 
 public interface IAccountService
 {
-	IEnumerable<Account> GetAllAccounts();
-	Account? GetById(int id);
-	void Add(Account account);
-	void Update(Account account);
-	void Delete(int id);
+	Task<IEnumerable<Account>> GetAllAccountsAsync();
+	Task<Account?> GetByIdAsync(int id);
+	Task AddAsync(Account account);
+	Task UpdateAsync(Account account);
+	Task DeleteAsync(int id);
 }

@@ -7,13 +7,13 @@ public class AccountService(IAccountRepository repository) : IAccountService
 {
 	private readonly IAccountRepository _repository = repository;
 
-	public IEnumerable<Account> GetAllAccounts() => _repository.GetAll();
+	public Task<IEnumerable<Account>> GetAllAccountsAsync() => _repository.GetAllAsync();
 
-	public Account? GetById(int id) => _repository.GetById(id);
+	public Task<Account?> GetByIdAsync(int id) => _repository.GetByIdAsync(id);
 
-	public void Add(Account account) => _repository.Add(account);
+	public Task AddAsync(Account account) => _repository.AddAsync(account);
 
-	public void Update(Account account) => _repository.Update(account);
+	public Task UpdateAsync(Account account) => _repository.UpdateAsync(account);
 
-	public void Delete(int id) => _repository.Delete(id);
+	public Task DeleteAsync(int id) => _repository.DeleteAsync(id);
 }

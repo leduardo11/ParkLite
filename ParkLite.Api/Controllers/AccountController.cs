@@ -11,19 +11,19 @@ public class AccountController(IAccountService accountService) : ControllerBase
 	private readonly IAccountService _accountService = accountService;
 
 	[HttpGet]
-	public IActionResult Get() => Ok(_accountService.GetAllAccounts());
+	public IActionResult Get() => Ok(_accountService.GetAllAccountsAsync());
 
 	[HttpGet("{id:int}")]
 	public IActionResult Get(int id)
 	{
-		var account = _accountService.GetById(id);
+		var account = _accountService.GetByIdAsync(id);
 		return account is null ? NotFound() : Ok(account);
 	}
 
 	[HttpPost]
 	public IActionResult Post(Account account)
 	{
-		_accountService.Add(account);
+		_accountService.AddAsync(account);
 		return CreatedAtAction(nameof(Get), new { id = account.Id }, account);
 	}
 
@@ -31,14 +31,14 @@ public class AccountController(IAccountService accountService) : ControllerBase
 	public IActionResult Put(int id, Account account)
 	{
 		if (id != account.Id) return BadRequest();
-		_accountService.Update(account);
+		_accountService.UpdateAsync(account);
 		return NoContent();
 	}
 
 	[HttpDelete("{id:int}")]
 	public IActionResult Delete(int id)
 	{
-		_accountService.Delete(id);
+		_accountService.DeleteAsync(id);
 		return NoContent();
 	}
 }
