@@ -5,7 +5,7 @@ GET {{HostAddress}}/api/account
 Accept: application/json
 
 ### Get account by id
-GET {{HostAddress}}/api/account/13
+GET {{HostAddress}}/api/account/12
 Accept: application/json
 
 ### Create new account

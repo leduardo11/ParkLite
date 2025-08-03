@@ -1,7 +1,6 @@
 using ParkLite.Api.Dtos;
 using ParkLite.Api.Helpers;
 using ParkLite.Api.Interfaces;
-using ParkLite.Api.Models;
 
 namespace ParkLite.Api.Services;
 
@@ -9,19 +8,27 @@ public class AccountService(IAccountRepository repository) : IAccountService
 {
 	private readonly IAccountRepository _repository = repository;
 
-	public Task<IEnumerable<Account>> GetAllAccountsAsync() => _repository.GetAllAsync();
+	public async Task<IEnumerable<AccountDTO>> GetAllAccountsAsync()
+	{
+		var accounts = await _repository.GetAllAsync();
+		return accounts.Select(SqliteHelper.MapAccountToDTO);
+	}
 
-	public Task<Account?> GetByIdAsync(int id) => _repository.GetByIdAsync(id);
+	public async Task<AccountDTO?> GetByIdAsync(int id)
+	{
+		var account = await _repository.GetByIdAsync(id);
+		return account == null ? null : SqliteHelper.MapAccountToDTO(account);
+	}
 
 	public async Task AddAsync(AccountDTO dto)
 	{
-		var account = UtilsHelper.MapDtoToAccount(dto);
+		var account = SqliteHelper.MapDTOToAccount(dto);
 		await _repository.AddAsync(account);
 	}
 
 	public async Task UpdateAsync(AccountDTO dto)
 	{
-		var account = UtilsHelper.MapDtoToAccount(dto);
+		var account = SqliteHelper.MapDTOToAccount(dto);
 		await _repository.UpdateAsync(account);
 	}
 

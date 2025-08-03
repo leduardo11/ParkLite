@@ -12,20 +12,20 @@ public class AccountController(IAccountService accountService) : ControllerBase
 
 	[HttpGet]
 	public async Task<IActionResult> Get() =>
-		Ok(await _accountService.GetAllAccountsAsync());
+		Ok(new { result = await _accountService.GetAllAccountsAsync() });
 
 	[HttpGet("{id:int}")]
 	public async Task<IActionResult> Get(int id)
 	{
 		var account = await _accountService.GetByIdAsync(id);
-		return account is null ? NotFound() : Ok(account);
+		return account is null ? NotFound() : Ok(new { result = account });
 	}
 
 	[HttpPost]
 	public async Task<IActionResult> Post(AccountDTO account)
 	{
 		await _accountService.AddAsync(account);
-		return CreatedAtAction(nameof(Get), new { id = account.Id }, account);
+		return CreatedAtAction(nameof(Get), new { id = account.Id }, new { result = account });
 	}
 
 	[HttpPut("{id:int}")]

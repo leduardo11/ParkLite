@@ -15,7 +15,7 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 			SELECT 
 				a.Id, a.Name, a.IsActive,
 				c.Id, c.Name, c.Phone,
-				v.Id, v.Plate, v.Model
+				v.Id, v.Plate, v.Model, v.Photo
 			FROM Accounts a
 			LEFT JOIN Contacts c ON c.AccountId = a.Id
 			LEFT JOIN Vehicles v ON v.AccountId = a.Id
@@ -49,7 +49,7 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 			SELECT 
 				a.Id, a.Name, a.IsActive,
 				c.Id, c.Name, c.Phone,
-				v.Id, v.Plate, v.Model
+				v.Id, v.Plate, v.Model, v.Photo
 			FROM Accounts a
 			LEFT JOIN Contacts c ON c.AccountId = a.Id
 			LEFT JOIN Vehicles v ON v.AccountId = a.Id
