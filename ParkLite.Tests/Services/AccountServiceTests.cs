@@ -9,44 +9,68 @@ namespace ParkLite.Tests.Services
 	public class AccountServiceTests
 	{
 		[Fact]
-		public void GetById_ReturnsAccount_WhenAccountExists()
+		public void GetAllAccounts_ReturnsAllAccounts()
 		{
 			// Arrange
 			var mockRepo = new Mock<IAccountRepository>();
-			var expectedAccount = new Account(1, "Test Account", true)
+			var accounts = new List<Account>
 			{
-				Contacts = [],
-				Vehicles = []
+				new(1, "Account1", true),
+				new(2, "Account2", false)
 			};
-
-			mockRepo.Setup(r => r.GetById(1)).Returns(expectedAccount);
-
+			mockRepo.Setup(r => r.GetAll()).Returns(accounts);
 			var service = new AccountService(mockRepo.Object);
 
 			// Act
-			var result = service.GetById(1);
+			var result = service.GetAllAccounts();
 
 			// Assert
 			Assert.NotNull(result);
-			Assert.Equal(1, result.Id);
-			Assert.Equal("Test Account", result.Name);
-			Assert.True(result.IsActive);
+			Assert.Equal(2, ((List<Account>)result).Count);
 		}
 
 		[Fact]
-		public void GetById_ReturnsNull_WhenAccountDoesNotExist()
+		public void Add_CallsRepositoryAdd()
 		{
 			// Arrange
 			var mockRepo = new Mock<IAccountRepository>();
-			mockRepo.Setup(r => r.GetById(It.IsAny<int>())).Returns((Account?)null);
-
+			var account = new Account(0, "New Account", true);
 			var service = new AccountService(mockRepo.Object);
 
 			// Act
-			var result = service.GetById(999);
+			service.Add(account);
 
 			// Assert
-			Assert.Null(result);
+			mockRepo.Verify(r => r.Add(account), Times.Once);
+		}
+
+		[Fact]
+		public void Update_CallsRepositoryUpdate()
+		{
+			// Arrange
+			var mockRepo = new Mock<IAccountRepository>();
+			var account = new Account(1, "Updated Account", false);
+			var service = new AccountService(mockRepo.Object);
+
+			// Act
+			service.Update(account);
+
+			// Assert
+			mockRepo.Verify(r => r.Update(account), Times.Once);
+		}
+
+		[Fact]
+		public void Delete_CallsRepositoryDelete()
+		{
+			// Arrange
+			var mockRepo = new Mock<IAccountRepository>();
+			var service = new AccountService(mockRepo.Object);
+
+			// Act
+			service.Delete(1);
+
+			// Assert
+			mockRepo.Verify(r => r.Delete(1), Times.Once);
 		}
 	}
 }

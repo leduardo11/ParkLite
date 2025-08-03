@@ -227,4 +227,34 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 		cmd.Parameters.AddWithValue("$id", id);
 		cmd.ExecuteNonQuery();
 	}
+
+	public void BatchDeactivateInactiveAccounts(int batchSize = 50, int delayMs = 1000)
+	{
+		int affectedRows;
+		do
+		{
+			using var transaction = _conn.BeginTransaction();
+			using var cmd = _conn.CreateCommand();
+			cmd.Transaction = transaction;
+
+			cmd.CommandText = $@"
+            WITH cte AS (
+                SELECT Id FROM Accounts
+                WHERE IsActive = 1
+                ORDER BY Id
+                LIMIT {batchSize}
+            )
+            UPDATE Accounts
+            SET IsActive = 0
+            WHERE Id IN (SELECT Id FROM cte);
+        ";
+
+			affectedRows = cmd.ExecuteNonQuery();
+			transaction.Commit();
+
+			if (affectedRows > 0)
+				Thread.Sleep(delayMs);
+
+		} while (affectedRows > 0);
+	}
 }

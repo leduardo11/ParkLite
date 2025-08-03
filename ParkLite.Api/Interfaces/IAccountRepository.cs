@@ -9,5 +9,6 @@ namespace ParkLite.Api.Interfaces
 		void Add(Account account);
 		void Update(Account account);
 		void Delete(int id);
+		void BatchDeactivateInactiveAccounts(int batchSize = 50, int delayMs = 1000);
 	}
 }
