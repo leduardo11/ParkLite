@@ -43,18 +43,27 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 		return account;
 	}
 
-	public async Task<IEnumerable<Account>> GetAllAsync()
+	public async Task<PaginatedResult<Account>> GetPaginatedAccountsAsync(int limit, int offset)
 	{
+		var result = new PaginatedResult<Account>();
+
+		using (var countCmd = SqliteHelper.CreateCommand(_conn, "SELECT COUNT(*) FROM Accounts"))
+			result.Total = Convert.ToInt32(await countCmd.ExecuteScalarAsync());
+
 		using var cmd = SqliteHelper.CreateCommand(_conn, """
-			SELECT 
-				a.Id, a.Name, a.IsActive,
-				c.Id, c.Name, c.Phone, c.Email,
-				v.Id, v.Plate, v.Model, v.Photo
-			FROM Accounts a
-			LEFT JOIN Contacts c ON c.AccountId = a.Id
-			LEFT JOIN Vehicles v ON v.AccountId = a.Id
-			ORDER BY a.Id
-		""");
+		SELECT 
+			a.Id, a.Name, a.IsActive,
+			c.Id, c.Name, c.Phone, c.Email,
+			v.Id, v.Plate, v.Model, v.Photo
+		FROM Accounts a
+		LEFT JOIN Contacts c ON c.AccountId = a.Id
+		LEFT JOIN Vehicles v ON v.AccountId = a.Id
+		ORDER BY a.Id
+		LIMIT $limit OFFSET $offset
+	""");
+
+		cmd.AddParameter("$limit", limit);
+		cmd.AddParameter("$offset", offset);
 
 		using var reader = await cmd.ExecuteReaderAsync();
 
@@ -71,15 +80,16 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 			}
 
 			var contact = SqliteHelper.CreateContactFromReader(reader);
-			if (contact != null && !account!.Contacts.Any(c => c.Id == contact.Id))
+			if (contact != null && !account.Contacts.Any(c => c.Id == contact.Id))
 				account.Contacts.Add(contact);
 
 			var vehicle = SqliteHelper.CreateVehicleFromReader(reader);
-			if (vehicle != null && !account!.Vehicles.Any(v => v.Id == vehicle.Id))
+			if (vehicle != null && !account.Vehicles.Any(v => v.Id == vehicle.Id))
 				account.Vehicles.Add(vehicle);
 		}
 
-		return accounts.Values;
+		result.Result = accounts.Values;
+		return result;
 	}
 
 	public async Task AddAsync(Account account)

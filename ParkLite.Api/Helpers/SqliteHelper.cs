@@ -90,13 +90,6 @@ namespace ParkLite.Api.Helpers
 			};
 		}
 
-		public static string? ConvertPhotoToBase64(byte[]? photo)
-		{
-			if (photo == null)
-				return null;
-			return Convert.ToBase64String(photo);
-		}
-
 		public static byte[]? ConvertPhotoFromBase64(string? base64)
 		{
 			if (string.IsNullOrEmpty(base64))
@@ -143,22 +136,6 @@ namespace ParkLite.Api.Helpers
 				Contacts = dto.Contacts,
 				Vehicles = [.. dto.Vehicles.Select(MapDtoToVehicle)]
 			};
-		}
-
-		public static byte[]? TryParseBase64(string? input)
-		{
-			if (string.IsNullOrWhiteSpace(input)) return null;
-
-			try
-			{
-				var parts = input.Split(',');
-				var base64 = parts.Length > 1 ? parts[1] : parts[0];
-				return Convert.FromBase64String(base64);
-			}
-			catch
-			{
-				return null;
-			}
 		}
 	}
 }

@@ -5,7 +5,7 @@ namespace ParkLite.Api.Interfaces;
 
 public interface IAccountService
 {
-	Task<IEnumerable<AccountDTO>> GetAllAccountsAsync();
+	Task<PaginatedResult<AccountDTO>> GetPaginatedAccountsAsync(int limit, int offset);
 	Task<AccountDTO?> GetByIdAsync(int id);
 	Task AddAsync(AccountDTO dto);
 	Task UpdateAsync(AccountDTO dto);

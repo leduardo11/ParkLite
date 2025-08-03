@@ -1,6 +1,7 @@
 using ParkLite.Api.Dtos;
 using ParkLite.Api.Helpers;
 using ParkLite.Api.Interfaces;
+using ParkLite.Api.Models;
 
 namespace ParkLite.Api.Services;
 
@@ -8,10 +9,15 @@ public class AccountService(IAccountRepository repository) : IAccountService
 {
 	private readonly IAccountRepository _repository = repository;
 
-	public async Task<IEnumerable<AccountDTO>> GetAllAccountsAsync()
+	public async Task<PaginatedResult<AccountDTO>> GetPaginatedAccountsAsync(int limit, int offset)
 	{
-		var accounts = await _repository.GetAllAsync();
-		return accounts.Select(SqliteHelper.MapAccountToDTO);
+		var raw = await _repository.GetPaginatedAccountsAsync(limit, offset);
+		
+		return new PaginatedResult<AccountDTO>
+		{
+			Total = raw.Total,
+			Result = raw.Result.Select(SqliteHelper.MapAccountToDTO)
+		};
 	}
 
 	public async Task<AccountDTO?> GetByIdAsync(int id)
