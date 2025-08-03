@@ -1,0 +1,34 @@
+PRAGMA foreign_keys
+= ON;
+
+CREATE TABLE
+IF NOT EXISTS Accounts
+(
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL,
+    IsActive INTEGER NOT NULL
+);
+
+CREATE TABLE
+IF NOT EXISTS Contacts
+(
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    AccountId INTEGER NOT NULL,
+    Name TEXT NOT NULL,
+    Phone TEXT,
+    FOREIGN KEY
+(AccountId) REFERENCES Accounts
+(Id)
+);
+
+CREATE TABLE
+IF NOT EXISTS Vehicles
+(
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    AccountId INTEGER NOT NULL,
+    Plate TEXT NOT NULL,
+    Model TEXT,
+    FOREIGN KEY
+(AccountId) REFERENCES Accounts
+(Id)
+);

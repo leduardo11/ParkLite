@@ -1,0 +1,53 @@
+@HostAddress = http://localhost:5000
+
+### Get all accounts
+GET {{HostAddress}}/api/account
+Accept: application/json
+
+### Get account by id
+GET {{HostAddress}}/api/account/13
+Accept: application/json
+
+### Create new account
+POST {{HostAddress}}/api/account
+Content-Type: application/json
+
+{
+  "name": "New Account",
+  "isActive": true,
+  "contacts": [
+    {
+      "name": "John Doe",
+      "phone": "123-456-7890"
+    },
+    {
+      "name": "Jane Smith",
+      "phone": "987-654-3210"
+    }
+  ],
+  "vehicles": [
+    {
+      "plate": "ABC123",
+      "model": "Toyota Camry"
+    },
+    {
+      "plate": "XYZ789",
+      "model": "Honda Accord"
+    }
+  ]
+}
+
+### Update account
+PUT {{HostAddress}}/api/account/13
+Content-Type: application/json
+
+{
+  "id": 13,
+  "name": "Updated Account",
+  "isActive": false,
+  "contacts": [],
+  "vehicles": []
+}
+
+### Delete account
+DELETE {{HostAddress}}/api/account/1
