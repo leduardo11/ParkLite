@@ -25,16 +25,6 @@ public static class SqliteHelper
 		return cmd;
 	}
 
-	public static void EnableForeignKeys(SqliteConnection conn)
-	{
-		if (conn.State != ConnectionState.Open)
-			conn.Open();
-
-		using var cmd = conn.CreateCommand();
-		cmd.CommandText = "PRAGMA foreign_keys = ON;";
-		cmd.ExecuteNonQuery();
-	}
-
 	public static void AddParameter(this SqliteCommand cmd, string name, object? value)
 	{
 		cmd.Parameters.AddWithValue(name, value ?? DBNull.Value);
@@ -70,5 +60,4 @@ public static class SqliteHelper
 			Model = reader.IsDBNull(8) ? null : reader.GetString(8),
 		};
 	}
-
 }

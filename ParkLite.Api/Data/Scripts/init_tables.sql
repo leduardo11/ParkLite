@@ -29,9 +29,11 @@ IF NOT EXISTS Vehicles
     AccountId INTEGER NOT NULL,
     Plate TEXT NOT NULL,
     Model TEXT,
+    Photo BLOB,
     FOREIGN KEY
 (AccountId) REFERENCES Accounts
 (Id) ON
 DELETE CASCADE
 );
+
 

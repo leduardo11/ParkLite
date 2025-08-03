@@ -9,4 +9,5 @@ public interface IAccountService
 	Task AddAsync(Account account);
 	Task UpdateAsync(Account account);
 	Task DeleteAsync(int id);
+	Task BatchDeactivateInactiveAccountsAsync(int batchSize = 50, int delayMs = 1000);
 }

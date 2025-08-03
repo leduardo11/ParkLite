@@ -41,4 +41,11 @@ public class AccountController(IAccountService accountService) : ControllerBase
 		_accountService.DeleteAsync(id);
 		return NoContent();
 	}
+
+	[HttpPost("batch-deactivate")]
+	public async Task<IActionResult> BatchDeactivate(int batchSize = 50, int delayMs = 1000)
+	{
+		await _accountService.BatchDeactivateInactiveAccountsAsync(batchSize, delayMs);
+		return NoContent();
+	}
 }

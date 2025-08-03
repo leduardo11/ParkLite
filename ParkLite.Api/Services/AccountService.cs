@@ -16,4 +16,7 @@ public class AccountService(IAccountRepository repository) : IAccountService
 	public Task UpdateAsync(Account account) => _repository.UpdateAsync(account);
 
 	public Task DeleteAsync(int id) => _repository.DeleteAsync(id);
+
+	public Task BatchDeactivateInactiveAccountsAsync(int batchSize = 50, int delayMs = 1000) =>
+	_repository.BatchDeactivateInactiveAccountsAsync(batchSize, delayMs);
 }
