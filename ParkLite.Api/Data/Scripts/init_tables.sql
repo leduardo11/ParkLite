@@ -16,6 +16,7 @@ IF NOT EXISTS Contacts
     AccountId INTEGER NOT NULL,
     Name TEXT NOT NULL,
     Phone TEXT,
+    Email TEXT,
     FOREIGN KEY
 (AccountId) REFERENCES Accounts
 (Id) ON
@@ -35,5 +36,3 @@ IF NOT EXISTS Vehicles
 (Id) ON
 DELETE CASCADE
 );
-
-

@@ -18,19 +18,19 @@ VALUES
 
 -- Contacts
 INSERT INTO Contacts
-	(AccountId, Name, Phone)
+	(AccountId, Name, Phone, Email)
 VALUES
-	(1, 'John Smith', '555-1234'),
-	(1, 'Jane Smith', '555-5678'),
-	(2, 'Alice Johnson', '555-2345'),
-	(3, 'Bob Williams', '555-3456'),
-	(4, 'Carol Brown', '555-4567'),
-	(5, 'Dave Jones', '555-5678'),
-	(6, 'Eva Garcia', '555-6789'),
-	(7, 'Frank Miller', '555-7890'),
-	(8, 'Grace Davis', '555-8901'),
-	(9, 'Hank Rodriguez', '555-9012'),
-	(10, 'Ivy Martinez', '555-0123');
+	(1, 'John Smith', '555-1234', 'john.smith@example.com'),
+	(1, 'Jane Smith', '555-5678', 'jane.smith@example.com'),
+	(2, 'Alice Johnson', '555-2345', 'alice.johnson@example.com'),
+	(3, 'Bob Williams', '555-3456', 'bob.williams@example.com'),
+	(4, 'Carol Brown', '555-4567', 'carol.brown@example.com'),
+	(5, 'Dave Jones', '555-5678', 'dave.jones@example.com'),
+	(6, 'Eva Garcia', '555-6789', 'eva.garcia@example.com'),
+	(7, 'Frank Miller', '555-7890', 'frank.miller@example.com'),
+	(8, 'Grace Davis', '555-8901', 'grace.davis@example.com'),
+	(9, 'Hank Rodriguez', '555-9012', 'hank.rodriguez@example.com'),
+	(10, 'Ivy Martinez', '555-0123', 'ivy.martinez@example.com');
 
 -- Vehicles
 INSERT INTO Vehicles

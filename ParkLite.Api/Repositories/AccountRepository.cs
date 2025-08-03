@@ -14,7 +14,7 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 		using var cmd = SqliteHelper.CreateCommand(_conn, """
 			SELECT 
 				a.Id, a.Name, a.IsActive,
-				c.Id, c.Name, c.Phone,
+				c.Id, c.Name, c.Phone, c.Email,
 				v.Id, v.Plate, v.Model, v.Photo
 			FROM Accounts a
 			LEFT JOIN Contacts c ON c.AccountId = a.Id
@@ -48,7 +48,7 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 		using var cmd = SqliteHelper.CreateCommand(_conn, """
 			SELECT 
 				a.Id, a.Name, a.IsActive,
-				c.Id, c.Name, c.Phone,
+				c.Id, c.Name, c.Phone, c.Email,
 				v.Id, v.Plate, v.Model, v.Photo
 			FROM Accounts a
 			LEFT JOIN Contacts c ON c.AccountId = a.Id
@@ -138,6 +138,7 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 			contactCmd.AddParameter("$accountId", account.Id);
 			contactCmd.AddParameter("$name", contact.Name);
 			contactCmd.AddParameter("$phone", contact.Phone);
+			contactCmd.AddParameter("$email", contact.Email);
 			await contactCmd.ExecuteNonQueryAsync();
 
 			contact.Id = await SqliteHelper.GetLastInsertRowIdAsync(_conn, transaction);

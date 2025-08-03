@@ -54,6 +54,7 @@ namespace ParkLite.Api.Helpers
 				AccountId = reader.GetInt32(0),
 				Name = reader.GetString(4),
 				Phone = reader.IsDBNull(5) ? null : reader.GetString(5),
+				Email = reader.IsDBNull(6) ? null : reader.GetString(6),
 			};
 		}
 
@@ -68,7 +69,7 @@ namespace ParkLite.Api.Helpers
 				AccountId = reader.GetInt32(0),
 				Plate = reader.GetString(7),
 				Model = reader.IsDBNull(8) ? null : reader.GetString(8),
-				Photo = reader.IsDBNull(9) ? null : (byte[])reader[9],
+				Photo = reader.IsDBNull(9) ? null : TryParseBase64(reader.GetString(9)),
 			};
 		}
 
