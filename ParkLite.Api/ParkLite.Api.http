@@ -1,7 +1,19 @@
 @HostAddress = http://localhost:5000
 
-### Get all accounts
+### Get paginated accounts (default limit=10, offset=0)
 GET {{HostAddress}}/api/account
+Accept: application/json
+
+### Get paginated accounts (limit=5, offset=10)
+GET {{HostAddress}}/api/account?limit=5&offset=10
+Accept: application/json
+
+### Get paginated accounts with search
+GET {{HostAddress}}/api/account?search=john
+Accept: application/json
+
+### Get paginated accounts with search and pagination
+GET {{HostAddress}}/api/account?search=doe&limit=3&offset=0
 Accept: application/json
 
 ### Get account by id

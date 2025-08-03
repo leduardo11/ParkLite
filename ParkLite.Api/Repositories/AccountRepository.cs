@@ -43,14 +43,19 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 		return account;
 	}
 
-	public async Task<PaginatedResult<Account>> GetPaginatedAccountsAsync(int limit, int offset)
+	public async Task<PaginatedResult<Account>> GetPaginatedAccountsAsync(int limit, int offset, string? search = null)
 	{
 		var result = new PaginatedResult<Account>();
 
-		using (var countCmd = SqliteHelper.CreateCommand(_conn, "SELECT COUNT(*) FROM Accounts"))
-			result.Total = Convert.ToInt32(await countCmd.ExecuteScalarAsync());
+		using var countCmd = SqliteHelper.CreateCommand(_conn,
+			search == null
+				? "SELECT COUNT(*) FROM Accounts"
+				: "SELECT COUNT(*) FROM Accounts WHERE Name LIKE $search");
 
-		using var cmd = SqliteHelper.CreateCommand(_conn, """
+		if (search != null) countCmd.AddParameter("$search", $"%{search}%");
+		result.Total = Convert.ToInt32(await countCmd.ExecuteScalarAsync());
+
+		using var cmd = SqliteHelper.CreateCommand(_conn, $"""
 		SELECT 
 			a.Id, a.Name, a.IsActive,
 			c.Id, c.Name, c.Phone, c.Email,
@@ -58,10 +63,11 @@ public class AccountRepository(SqliteConnection connection) : IAccountRepository
 		FROM Accounts a
 		LEFT JOIN Contacts c ON c.AccountId = a.Id
 		LEFT JOIN Vehicles v ON v.AccountId = a.Id
+		{(search != null ? "WHERE a.Name LIKE $search" : "")}
 		ORDER BY a.Id
 		LIMIT $limit OFFSET $offset
 	""");
-
+		if (search != null) cmd.AddParameter("$search", $"%{search}%");
 		cmd.AddParameter("$limit", limit);
 		cmd.AddParameter("$offset", offset);
 

@@ -9,10 +9,10 @@ public class AccountService(IAccountRepository repository) : IAccountService
 {
 	private readonly IAccountRepository _repository = repository;
 
-	public async Task<PaginatedResult<AccountDTO>> GetPaginatedAccountsAsync(int limit, int offset)
+	public async Task<PaginatedResult<AccountDTO>> GetPaginatedAccountsAsync(int limit, int offset, string? search = null)
 	{
-		var raw = await _repository.GetPaginatedAccountsAsync(limit, offset);
-		
+		var raw = await _repository.GetPaginatedAccountsAsync(limit, offset, search);
+
 		return new PaginatedResult<AccountDTO>
 		{
 			Total = raw.Total,

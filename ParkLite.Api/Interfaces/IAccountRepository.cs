@@ -4,7 +4,7 @@ namespace ParkLite.Api.Interfaces
 {
 	public interface IAccountRepository
 	{
-		Task<PaginatedResult<Account>> GetPaginatedAccountsAsync(int limit, int offset);
+		Task<PaginatedResult<Account>> GetPaginatedAccountsAsync(int limit, int offset, string? search = null);
 		Task<Account?> GetByIdAsync(int id);
 		Task AddAsync(Account account);
 		Task UpdateAsync(Account account);

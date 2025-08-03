@@ -9,13 +9,13 @@ namespace ParkLite.Api.Controllers;
 public class AccountController(IAccountService accountService) : ControllerBase
 {
 	private readonly IAccountService _accountService = accountService;
-   
-    [HttpGet]
-    public async Task<IActionResult> Get([FromQuery] int limit = 10, [FromQuery] int offset = 0)
-    {
-	    var result = await _accountService.GetPaginatedAccountsAsync(limit, offset);
-	    return Ok(result);
-    }
+
+	[HttpGet]
+	public async Task<IActionResult> Get([FromQuery] int limit = 10, [FromQuery] int offset = 0, [FromQuery] string? search = null)
+	{
+		var result = await _accountService.GetPaginatedAccountsAsync(limit, offset, search);
+		return Ok(result);
+	}
 
 
 	[HttpGet("{id:int}")]
