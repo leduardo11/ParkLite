@@ -3,74 +3,136 @@ using Moq;
 using ParkLite.Api.Services;
 using ParkLite.Api.Interfaces;
 using ParkLite.Api.Models;
+using ParkLite.Api.Dtos;
 
 namespace ParkLite.Tests.Services
 {
 	public class AccountServiceTests
 	{
 		[Fact]
-		public void GetAllAccounts_ReturnsAllAccounts()
+		public async Task GetPaginatedAccountsAsync_ReturnsMappedResult()
 		{
 			// Arrange
 			var mockRepo = new Mock<IAccountRepository>();
-			var accounts = new List<Account>
+			var mockData = new PaginatedResult<Account>
 			{
-				new(1, "Account1", true),
-				new(2, "Account2", false)
+				Total = 2,
+				Result =
+				[
+					new(1, "Test 1", true),
+					new(2, "Test 2", false)
+				]
 			};
-			mockRepo.Setup(r => r.GetAll()).Returns(accounts);
+
+			mockRepo.Setup(r => r.GetPaginatedAccountsAsync(10, 0, null)).ReturnsAsync(mockData);
 			var service = new AccountService(mockRepo.Object);
 
 			// Act
-			var result = service.GetAllAccounts();
+			var result = await service.GetPaginatedAccountsAsync(10, 0);
+
+			// Assert
+			Assert.Equal(2, result.Total);
+			Assert.Collection(result.Result,
+				item => Assert.Equal("Test 1", item.Name),
+				item => Assert.Equal("Test 2", item.Name));
+		}
+
+		[Fact]
+		public async Task GetByIdAsync_ReturnsMappedDTO()
+		{
+			// Arrange
+			var mockRepo = new Mock<IAccountRepository>();
+			var account = new Account(1, "Sample", true);
+			mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(account);
+			var service = new AccountService(mockRepo.Object);
+
+			// Act
+			var result = await service.GetByIdAsync(1);
 
 			// Assert
 			Assert.NotNull(result);
-			Assert.Equal(2, ((List<Account>)result).Count);
+			Assert.Equal("Sample", result!.Name);
+			Assert.True(result.IsActive);
 		}
 
 		[Fact]
-		public void Add_CallsRepositoryAdd()
-		{
-			// Arrange
-			var mockRepo = new Mock<IAccountRepository>();
-			var account = new Account(0, "New Account", true);
-			var service = new AccountService(mockRepo.Object);
-
-			// Act
-			service.Add(account);
-
-			// Assert
-			mockRepo.Verify(r => r.Add(account), Times.Once);
-		}
-
-		[Fact]
-		public void Update_CallsRepositoryUpdate()
-		{
-			// Arrange
-			var mockRepo = new Mock<IAccountRepository>();
-			var account = new Account(1, "Updated Account", false);
-			var service = new AccountService(mockRepo.Object);
-
-			// Act
-			service.Update(account);
-
-			// Assert
-			mockRepo.Verify(r => r.Update(account), Times.Once);
-		}
-
-		[Fact]
-		public void Delete_CallsRepositoryDelete()
+		public async Task AddAsync_CallsRepositoryWithMappedAccount()
 		{
 			// Arrange
 			var mockRepo = new Mock<IAccountRepository>();
 			var service = new AccountService(mockRepo.Object);
+			var dto = new AccountDTO
+			{
+				Name = "New Account",
+				IsActive = true,
+				Contacts = [],
+				Vehicles = []
+			};
 
 			// Act
-			service.Delete(1);
+			await service.AddAsync(dto);
 
 			// Assert
-			mockRepo.Verify(r => r.Delete(1), Times.Once);
+			mockRepo.Verify(r => r.AddAsync(It.Is<Account>(a =>
+				a.Name == dto.Name &&
+				a.IsActive == dto.IsActive &&
+				a.Contacts.Count == 0 &&
+				a.Vehicles.Count == 0
+			)), Times.Once);
+		}
+
+		[Fact]
+		public async Task UpdateAsync_CallsRepositoryWithMappedAccount()
+		{
+			// Arrange
+			var mockRepo = new Mock<IAccountRepository>();
+			var service = new AccountService(mockRepo.Object);
+			var dto = new AccountDTO
+			{
+				Id = 42,
+				Name = "Updated Account",
+				IsActive = false,
+				Contacts = [],
+				Vehicles = []
+			};
+
+			// Act
+			await service.UpdateAsync(dto);
+
+			// Assert
+			mockRepo.Verify(r => r.UpdateAsync(It.Is<Account>(a =>
+				a.Id == dto.Id &&
+				a.Name == dto.Name &&
+				a.IsActive == dto.IsActive
+			)), Times.Once);
+		}
+
+		[Fact]
+		public async Task DeleteAsync_CallsRepositoryDelete()
+		{
+			// Arrange
+			var mockRepo = new Mock<IAccountRepository>();
+			var service = new AccountService(mockRepo.Object);
+
+			// Act
+			await service.DeleteAsync(1);
+
+			// Assert
+			mockRepo.Verify(r => r.DeleteAsync(1), Times.Once);
+		}
+
+		[Fact]
+		public async Task BatchDeactivateInactiveAccountsAsync_CallsRepository()
+		{
+			// Arrange
+			var mockRepo = new Mock<IAccountRepository>();
+			var service = new AccountService(mockRepo.Object);
+
+			// Act
+			await service.BatchDeactivateInactiveAccountsAsync(batchSize: 25, delayMs: 500);
+
+			// Assert
+			mockRepo.Verify(r => r.BatchDeactivateInactiveAccountsAsync(25, 500), Times.Once);
 		}
 	}
 }

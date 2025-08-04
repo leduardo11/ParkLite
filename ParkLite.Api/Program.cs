@@ -5,16 +5,6 @@ using ParkLite.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCors(options =>
-{
-	options.AddPolicy("AllowAll", policy =>
-	{
-		policy.AllowAnyOrigin()
-			  .AllowAnyMethod()
-			  .AllowAnyHeader();
-	});
-});
-
 builder.Services.AddScoped(_ =>
 {
 	var conn = new SqliteConnection(builder.Configuration.GetConnectionString("Default"));
@@ -29,13 +19,19 @@ builder.Services.AddControllers();
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-	options.ListenAnyIP(5000);
+	var port = Environment.GetEnvironmentVariable("PORT");
+	if (!int.TryParse(port, out var portNumber)) portNumber = 5000;
+	options.ListenAnyIP(portNumber);
 });
 
 var app = builder.Build();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseRouting();
-app.UseCors("AllowAll");
+
 app.MapControllers();
+app.MapFallbackToFile("index.html");
 
 app.Run();
