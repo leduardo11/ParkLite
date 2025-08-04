@@ -11,6 +11,9 @@ Austin, TX 78746
 
 ParkLite is a simple parking account management system for condominium residents. Each account may include multiple contacts and vehicles. The app provides a .NET 8 back-end API with a modern React frontend served from the same origin for security.
 
+**Live Demo**: [http://parklite.runasp.net](http://parklite.runasp.net)  
+**GitHub Repo**: [https://github.com/leduardo11/ParkLite](https://github.com/leduardo11/ParkLite)
+
 ---
 
 ## Features
@@ -45,4 +48,3 @@ ParkLite is a simple parking account management system for condominium residents
 - **TypeScript 5**
 - **ESLint**  
 - **Docker** (multi-stage image)
-
